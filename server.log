@@ -1,0 +1,12 @@
+nohup: ignoring input
+INFO:     Started server process [3056]
+INFO:     Waiting for application startup.
+2026-11-16 10:03:01,700 main INFO Bot app started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8099 (Press CTRL+C to quit)
+INFO:     127.0.0.1:36786 - "GET / HTTP/1.1" 200 OK
+2026-11-16 10:03:02,117 main INFO MAX update: event=message chat_id=123456789 user_id=123456789 text='заявка'
+2026-11-16 10:03:02,117 main WARNING Новый чат в MAX: chat_id=123456789 user_id=123456789 name='Тест'. Если это владелец — укажите OWNER_MAX_USER_ID=123456789 в .env
+2026-11-16 10:03:02,837 max ERROR MAX API POST /messages -> 404: {"code":"error.not.found","message":"error.not.found"}
+2026-11-16 10:03:03,544 max ERROR MAX API POST /messages -> 404: {"code":"error.not.found","message":"error.not.found"}
+INFO:     127.0.0.1:36794 - "POST /max/webhook HTTP/1.1" 200 OK

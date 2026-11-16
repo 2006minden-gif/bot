@@ -1,6 +1,1 @@
-.env
-secrets/
-data/
-__pycache__/
-*.log
-.venv/
+*.tar.gz
