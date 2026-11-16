@@ -135,9 +135,10 @@ async def tg_webhook(request: Request, token: str):
 
 @app.post(config.MAX_WEBHOOK_PATH)
 async def max_webhook(request: Request):
-    # проверка секрета, если задан
+    # проверка секрета, если задан (MAX присылает его в заголовке X-Max-Bot-Api-Secret)
     if config.MAX_WEBHOOK_SECRET:
-        sig = request.headers.get("X-Max-Signature") or \
+        sig = request.headers.get("X-Max-Bot-Api-Secret") or \
+            request.headers.get("X-Max-Signature") or \
             request.query_params.get("secret")
         if sig != config.MAX_WEBHOOK_SECRET:
             return JSONResponse({"error": "forbidden"}, status_code=403)
