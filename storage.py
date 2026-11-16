@@ -16,6 +16,28 @@ import config
 _LOCK = threading.Lock()
 _DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 _DB_FILE = os.path.join(_DB_DIR, "sessions.json")
+OWNERS_FILE = "owners.json"
+
+
+def _path(name: str) -> str:
+    return name if os.path.isabs(name) else os.path.join(_DB_DIR, name)
+
+
+def load_json(name: str, default):
+    """Универсальная загрузка small-файлов (owners.json и т.п.)."""
+    try:
+        with open(_path(name), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default
+
+
+def save_json(name: str, data):
+    os.makedirs(_DB_DIR, exist_ok=True)
+    tmp = _path(name) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, _path(name))
 
 
 def _load() -> dict:

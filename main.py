@@ -154,9 +154,31 @@ async def max_webhook(request: Request):
     text = (upd["text"] or "").strip()
     log.info("MAX update: event=%s chat_id=%s user_id=%s text=%r",
              upd["event"], chat_id, upd["user_id"], text[:80])
-    if upd["event"] != "callback" and text.lower() in ("/start", "старт", "начать", "заявка"):
-        log.info("New MAX dialog: chat_id=%s user_id=%s name=%r — при необходимости "
-                 "обновите OWNER_MAX_USER_ID", chat_id, upd["user_id"], upd["name"])
+
+    # Автоизучение владельцев: если chat_id совпадает с известным Telegram-владельцем
+    # или это первый входящий диалог и OWNER_MAX_USER_ID ещё не задан — запоминаем.
+    try:
+        owners = storage.load_json(storage.OWNERS_FILE, {"max": []})
+    except Exception:  # noqa: BLE001
+        owners = {"max": []}
+    changed = False
+    if chat_id not in owners["max"]:
+        owners["max"].append(chat_id)
+        owners["max"] = owners["max"][-20:]
+        changed = True
+        log.warning("Новый чат в MAX: chat_id=%s user_id=%s name=%r. "
+                    "Если это владелец — укажите OWNER_MAX_USER_ID=%s в .env",
+                    chat_id, upd.get("user_id"), upd.get("name"), chat_id)
+    if changed:
+        try:
+            storage.save_json(storage.OWNERS_FILE, owners)
+        except Exception as e:  # noqa: BLE001
+            log.error("Не удалось сохранить owners.json: %s", e)
+    if not config.OWNER_MAX_USER_ID and \
+            str(chat_id) == str(config.OWNER_TELEGRAM_ID):
+        config.OWNER_MAX_USER_ID = str(chat_id)
+        log.warning("OWNER_MAX_USER_ID автоподставлен из совпадения с "
+                    "OWNER_TELEGRAM_ID: %s", chat_id)
 
     async def send_max(t, buttons=None, markdown: bool = False):
         try:
