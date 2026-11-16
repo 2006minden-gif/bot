@@ -135,21 +135,28 @@ async def tg_webhook(request: Request, token: str):
 
 @app.post(config.MAX_WEBHOOK_PATH)
 async def max_webhook(request: Request):
-    # проверка секрета, если задан (MAX присылает его в заголовке X-Max-Bot-Api-Secret)
-    if config.MAX_WEBHOOK_SECRET:
-        sig = request.headers.get("X-Max-Bot-Api-Secret") or \
-            request.headers.get("X-Max-Signature") or \
-            request.query_params.get("secret")
+    # Проверка секрета: MAX webhook-подписи не присылает, поэтому секрет можно
+    # встроить прямо в URL подписки: /max/webhook?secret=<MAX_WEBHOOK_SECRET>.
+    # Строгая проверка включается, если задан MAX_WEBHOOK_STRICT=1.
+    if config.MAX_WEBHOOK_SECRET and config.MAX_WEBHOOK_STRICT:
+        sig = request.query_params.get("secret") or \
+            request.headers.get("X-Max-Bot-Api-Secret") or \
+            request.headers.get("X-Max-Signature")
         if sig != config.MAX_WEBHOOK_SECRET:
             return JSONResponse({"error": "forbidden"}, status_code=403)
 
     body = await request.json()
     upd = max_client.parse_update(body)
-    if upd is None:
-        return {"sync_id": body.get("sync_id")}
+    if upd is None or upd.get("event") == "ignored" or not upd.get("chat_id"):
+        return {"ok": True}
 
     chat_id = upd["chat_id"]
-    text = upd["text"]
+    text = (upd["text"] or "").strip()
+    log.info("MAX update: event=%s chat_id=%s user_id=%s text=%r",
+             upd["event"], chat_id, upd["user_id"], text[:80])
+    if upd["event"] != "callback" and text.lower() in ("/start", "старт", "начать", "заявка"):
+        log.info("New MAX dialog: chat_id=%s user_id=%s name=%r — при необходимости "
+                 "обновите OWNER_MAX_USER_ID", chat_id, upd["user_id"], upd["name"])
 
     async def send_max(t, buttons=None, markdown: bool = False):
         try:
@@ -158,19 +165,20 @@ async def max_webhook(request: Request):
             log.exception("MAX send error: %s", e)
 
     low = text.lower()
-    if low in ("/start", "старт", "начать", "заявка", "/cancel"):
-        if low == "/cancel":
-            ok = await dialog.abandon(send_max, "max", chat_id)
-            if not ok:
-                await send_max("Активной анкеты нет. Напишите «заявка», чтобы начать.")
-        else:
-            await dialog.start_dialog(send_max, "max", chat_id, upd["name"])
-        return {"sync_id": body.get("sync_id")}
+    if low in ("/cancel", "отмена", "отменить", "сброс"):
+        ok = await dialog.abandon(send_max, "max", chat_id)
+        if not ok:
+            await send_max("Активной анкеты нет. Напишите «заявка», чтобы начать.")
+        return {"ok": True}
+
+    if upd["event"] in ("bot_started",) or low in ("/start", "старт", "начать", "заявка"):
+        await dialog.start_dialog(send_max, "max", chat_id, upd["name"])
+        return {"ok": True}
 
     status = await dialog.handle_message(send_max, "max", chat_id, text)
     if status == "no-session":
         await dialog.start_dialog(send_max, "max", chat_id, upd["name"])
-    return {"sync_id": body.get("sync_id")}
+    return {"ok": True}
 
 
 # Служебный эндпоинт для cron на Sweb: сброс просроченных (брошенных) анкет
@@ -198,9 +206,10 @@ async def setup_telegram_webhook():
 
 async def setup_max_webhook():
     url = f"{config.WEBHOOK_BASE_URL}{config.MAX_WEBHOOK_PATH}"
-    res = await max_client.max_api("POST", "/webhooks/setWebhook",
-                                   json={"url": url})
-    log.info("MAX setWebhook: %s", res)
+    if config.MAX_WEBHOOK_SECRET and config.MAX_WEBHOOK_STRICT:
+        url += f"?secret={config.MAX_WEBHOOK_SECRET}"
+    res = await max_client.set_webhook(url)
+    log.info("MAX subscribe: %s", res)
 
 
 # ================================ ЗАПУСК ====================================

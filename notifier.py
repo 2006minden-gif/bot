@@ -44,19 +44,10 @@ async def send_to_max_owner(text: str):
     if not config.MAX_BOT_TOKEN or not config.OWNER_MAX_USER_ID:
         log.warning("MAX токен/ID владельца не заданы — заявка в MAX не отправлена")
         return False
-    url = f"{config.MAX_API_BASE}/chats/{config.OWNER_MAX_USER_ID}/messages/send"
-    headers = {"Authorization": f"Bearer {config.MAX_BOT_TOKEN}",
-               "Content-Type": "application/json"}
-    payload = {"text": text}
     try:
-        async with aiohttp.ClientSession() as s:
-            async with s.post(url, json=payload, headers=headers,
-                              timeout=aiohttp.ClientTimeout(total=15)) as r:
-                body = await r.text()
-                if r.status >= 300:
-                    log.error("MAX send failed %s: %s", r.status, body)
-                    return False
-                return True
+        import max_client
+        res = await max_client.send_message(config.OWNER_MAX_USER_ID, text)
+        return res is not None
     except Exception as e:  # noqa: BLE001
         log.exception("MAX send error: %s", e)
         return False
