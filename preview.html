@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>НейроДело — бот заявок: визуальное демо</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0e1621; color: #e1f3ff; padding: 40px 20px 80px;
+  }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; }
+  .sub { text-align: center; color: #7fb0d0; margin-bottom: 40px; font-size: 15px; }
+  .wrap { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; }
+  .phone {
+    width: 370px; background: #17212b; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5); border: 1px solid #242f3d;
+  }
+  .header {
+    background: #1f2c3a; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #0e1621;
+  }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff;
+  }
+  .tg .avatar { background: linear-gradient(135deg,#2aabee,#229ed9); }
+  .mx .avatar { background: linear-gradient(135deg,#4a7dff,#7b5cff); }
+  .hm b { display: block; font-size: 15px; }
+  .hm span { font-size: 12px; color: #7fb0d0; }
+  .badge { margin-left: auto; font-size: 11px; padding: 3px 10px; border-radius: 10px; }
+  .tg .badge { background: #229ed9; }
+  .mx .badge { background: #5c6bff; }
+  .chat {
+    padding: 16px 12px; min-height: 300px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(42,171,238,.06), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(123,92,255,.06), transparent 40%),
+      #0e1621;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .msg { max-width: 85%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; position: relative; }
+  .bot  { align-self: flex-start; background: #182533; border-bottom-left-radius: 4px; }
+  .user { align-self: flex-end;   background: #2b5278; border-bottom-right-radius: 4px; }
+  .kb { align-self: flex-start; max-width: 85%; background: #182533; border-radius: 14px; border-bottom-left-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .btn {
+    background: #232e3c; border: none; color: #6ab7ff; text-align: center; padding: 10px;
+    border-radius: 8px; font-size: 14px; cursor: pointer; transition: .15s;
+  }
+  .btn:hover { background: #2c3a4b; }
+  .btn.picked { background: #2b5278; color: #fff; }
+  .time { font-size: 11px; color: #6d8296; text-align: right; margin-top: 3px; }
+  .section-title { width: 100%; text-align: center; margin: 34px 0 18px; font-size: 20px; color: #e1f3ff; }
+  .owner-card {
+    width: 640px; max-width: 100%; background: #17212b; border-radius: 18px; padding: 22px 26px;
+    border: 1px solid #5c6bff33; box-shadow: 0 12px 40px rgba(0,0,0,.4); font-size: 14.5px; line-height: 1.7;
+  }
+  .owner-card h3 { color: #8ea6ff; margin-bottom: 12px; font-size: 16px; }
+  .owner-card .lbl { color: #7fb0d0; }
+  .cancelled { border-color: #ff5c5c33; }
+  .cancelled h3 { color: #ff8a8a; }
+  .tag { display: inline-block; background: #ff5c5c22; color: #ff8a8a; padding: 2px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 8px; }
+  .note { width: 100%; text-align: center; color: #6d8296; font-size: 13px; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<h1>🤖 Бот заявок neurodelo.pro</h1>
+<div class="sub">Визуальное демо диалога (реальные тексты из кода бота). Кнопки кликабельны — можно «пройти» анкету.</div>
+
+<div class="wrap">
+
+  <!-- ================= TELEGRAM ================= -->
+  <div class="phone tg">
+    <div class="header">
+      <div class="avatar">✈️</div>
+      <div class="hm"><b>НейроДело | ИИ-помощник</b><span>@se14794003_1_bot · bot</span></div>
+      <div class="badge">Telegram</div>
+    </div>
+    <div class="chat" id="tg-chat"></div>
+  </div>
+
+  <!-- ================= MAX ================= -->
+  <div class="phone mx">
+    <div class="header">
+      <div class="avatar">M</div>
+      <div class="hm"><b>НейроДело | ИИ-помощник</b><span>бот в MAX</span></div>
+      <div class="badge">MAX</div>
+    </div>
+    <div class="chat" id="max-chat"></div>
+  </div>
+</div>
+
+<!-- ================= СООБЩЕНИЕ ВЛАДЕЛЬЦУ ================= -->
+<div class="section-title">📩 Что получает владелец в MAX</div>
+<div class="wrap">
+  <div class="owner-card">
+    <h3>✅ НОВАЯ ЗАЯВКА</h3>
+    <span class="lbl">Имя:</span> Иван Петров<br>
+    <span class="lbl">Контакт:</span> +7 900 123-45-67<br>
+    <span class="lbl">Направление:</span> Разработка сайта<br>
+    <span class="lbl">Тип сайта:</span> Интернет-магазин<br>
+    <span class="lbl">Детали:</span> дизайна нет, нравится как сделан ozon.ru<br>
+    <span class="lbl">Бюджет:</span> 100–300 тысяч<br>
+    <span class="lbl">Сроки:</span> В течение месяца<br>
+    <span class="lbl">Время заявки:</span> 16.11.2026 13:42 (МСК)<br>
+    <span class="lbl">Откуда:</span> Telegram<br>
+    <span class="lbl">Статус:</span> заявка полная ✔
+  </div>
+
+  <div class="owner-card cancelled">
+    <h3>⚠️ ЗАЯВКА (диалог прерван)</h3>
+    <div class="tag">Клиент прервал диалог — отвечено 3 из 9</div>
+    <span class="lbl">Имя:</span> —<br>
+    <span class="lbl">Контакт:</span> —<br>
+    <span class="lbl">Направление:</span> Маркетплейсы<br>
+    <span class="lbl">Площадка:</span> Wildberries<br>
+    <span class="lbl">Детали:</span> нужна автоматизация приёмки поставок<br>
+    <span class="lbl">Бюджет:</span> до 50 тысяч<br>
+    <span class="lbl">Сроки:</span> —<br>
+    <span class="lbl">Время заявки:</span> 16.11.2026 15:05 (МСК)<br>
+    <span class="lbl">Откуда:</span> MAX<br>
+    <span class="lbl">Статус:</span> неполная — отправить собранное
+  </div>
+</div>
+
+<div class="section-title">🗂 Дубль в Google Таблице</div>
+<div class="wrap">
+  <div class="owner-card" style="overflow-x:auto">
+    <table style="border-collapse:collapse;width:100%;font-size:13px">
+      <tr style="background:#1f2c3a">
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Время (МСК)</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Платформа</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Имя</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Контакт</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Направление</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Детали</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Бюджет</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Сроки</th>
+        <th style="padding:8px;border:1px solid #2c3a4b;text-align:left">Статус</th>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #2c3a4b">16.11.2026 13:42</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Telegram</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Иван Петров</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">+7 900 123-45-67</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Разработка сайта</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Магазин; пример ozon.ru</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">100–300 тыс</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Месяц</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Полная ✔</td>
+      </tr>
+      <tr style="background:#1a2431">
+        <td style="padding:8px;border:1px solid #2c3a4b">16.11.2026 15:05</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">MAX</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">—</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">—</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Маркетплейсы</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">WB: автоматизация приёмки</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">до 50 тыс</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">—</td>
+        <td style="padding:8px;border:1px solid #2c3a4b">Прервана ⚠</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="note">Файл сгенерирован из реальной логики survey.py / notifier.py. Полный текстовый распечаток — demo_transcript.txt</div>
+
+<script>
+// ---------- интерактивная мини-анкета в обеих "телефонах" ----------
+const STEPS = [
+  { q: "Здравствуйте! Я помогу оставить заявку на neurodelo.pro. Ответьте на несколько вопросов — это займёт пару минут.\n\nКакое направление вас интересует? 👇",
+    kb: ["Разработка сайта","ИИ-агент","Маркетплейсы","Приложение","Другое"] },
+  { follow: {
+      "Разработка сайта": { q: "Какой тип сайта вам нужен?", kb: ["Лендинг","Корпоративный сайт","Интернет-магазин","Сложный сервис"], next: "design" },
+      "ИИ-агент": { q: "Какую задачу должен решать ИИ-агент?", kb: ["Автоответы клиентам","Автоматизация процессов","Анализ данных","Другое"], next: "systems" },
+      "Маркетплейсы": { q: "На какой площадке нужна автоматизация?", kb: ["Wildberries","Ozon","Яндекс Маркет","МегаМаркет"], next: "process" },
+      "Приложение": { q: "Какое приложение вам нужно?", kb: ["Мобильное iOS","Мобильное Android","Кроссплатформенное","Десктопное"], next: "design" },
+      "Другое": { q: "Опишите, пожалуйста, вашу задачу своими словами ✍️", kb: null, free: true, next: "budget" }
+  }},
+];
+const AFTER = {
+  design:  { q: "Расскажите, есть ли у вас уже дизайн или примеры сайтов/приложений, которые нравятся? Можете прислать ссылки или описать словами.", free: true, next: "budget" },
+  systems: { q: "Какие системы должен использовать ИИ? (CRM, 1С, мессенджеры, таблицы и т.д.)", free: true, next: "budget" },
+  process: { q: "Какой процесс нужно автоматизировать? (например: ответы на отзывы, приёмка, отгрузки)", free: true, next: "budget" },
+  budget:  { q: "Какой бюджет вы закладываете на проект?", kb: ["до 50 тысяч","50–100 тысяч","100–300 тысяч","более 300 тысяч","нужна консультация"], next: "deadline" },
+  deadline:{ q: "Какие сроки реализации?", kb: ["Срочно (до 2 недель)","В течение месяца","Не горит"], next: "name" },
+  name:    { q: "Как вас зовут? 🙂", free: true, next: "contact" },
+  contact: { q: "Отлично! Оставьте контакт для связи — телефон или ник в мессенджере (например: +7 900 000-00-00 или @username).", free: true, next: "done" },
+};
+
+function now(){ const d=new Date(); return d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0"); }
+
+function addMsg(chatId, cls, text){
+  const c=document.getElementById(chatId);
+  const m=document.createElement("div"); m.className="msg "+cls;
+  m.innerHTML=text+'<div class="time">'+(cls==="user"?"✓✓ ":"")+now()+"</div>";
+  c.appendChild(m); c.scrollTop=c.scrollHeight;
+}
+function addKB(chatId, opts, onPick){
+  const c=document.getElementById(chatId);
+  const k=document.createElement("div"); k.className="kb";
+  opts.forEach(o=>{
+    const b=document.createElement("button"); b.className="btn"; b.textContent=o;
+    b.onclick=()=>{ k.remove(); onPick(o); };
+    k.appendChild(b);
+  });
+  c.appendChild(k); c.scrollTop=c.scrollHeight;
+}
+function runFlow(chatId, platformName){
+  const c=document.getElementById(chatId); c.innerHTML="";
+  let step=0, direction=null, answers=[];
+  function askCurrent(){
+    if(step===0){
+      addMsg(chatId,"bot",STEPS[0].q);
+      addKB(chatId,STEPS[0].kb,(o)=>{ direction=o; addMsg(chatId,"user",o); step=1;
+        const f=STEPS[1].follow[o]; addMsg(chatId,"bot",f.q);
+        if(f.kb){ addKB(chatId,f.kb,(o2)=>{ addMsg(chatId,"user",o2); proceed(AFTER[f.next]); }); }
+        else { inputFree(proceed(AFTER[f.next])); }
+      });
+    }
+  }
+  function inputFree(nextFn){
+    // простая имитация: подсказываем ввести текст и нажать Enter через prompt-подобное поле
+    const inp=document.createElement("div"); inp.className="kb"; inp.style.width="85%";
+    inp.innerHTML='<input id="'+chatId+'-in" placeholder="Введите ответ и нажмите ↵" style="width:100%;background:#232e3c;border:none;color:#e1f3ff;padding:10px;border-radius:8px;font-size:14px;outline:none">';
+    c.appendChild(inp); c.scrollTop=c.scrollHeight;
+    const el=document.getElementById(chatId+"-in"); el.focus();
+    el.onkeydown=(e)=>{ if(e.key==="Enter"&&el.value.trim()){ const v=el.value.trim(); inp.remove(); addMsg(chatId,"user",v); nextFn(v);} };
+  }
+  function proceed(node){
+    node=node;
+    function handler(val){
+      if(!node.free) {} // answers collected implicitly
+      if(node.next==="done"){
+        addMsg(chatId,"bot","🎉 Спасибо! Ваша заявка принята.\nНаш специалист свяжется с вами в течение 2 часов.");
+        setTimeout(()=>addMsg(chatId,"bot","💾 Заявка отправлена владельцу в MAX и записана в Google Таблицу (платформа: "+platformName+")."),900);
+        setTimeout(()=>{ if(confirm("Показать сообщение, которое получил владелец в MAX?")) location.href="#owner-demo"; },1800);
+        return;
+      }
+      const nxt=AFTER[node.next];
+      addMsg(chatId,"bot",nxt.q);
+      if(nxt.kb){ addKB(chatId,nxt.kb,(o)=>{ addMsg(chatId,"user",o); proceed(nxt); }); }
+      else { inputFree(()=>proceed(nxt)); }
+    }
+    // если текущий узел со свободным вводом — он уже обработан выше; здесь стартуем следующий
+    if(node.kb){ /* выбрано кнопкой */ return handler; }
+    return handler();
+  }
+  askCurrent();
+}
+runFlow("tg-chat","Telegram");
+runFlow("max-chat","MAX");
+</script>
+</body>
+</html>

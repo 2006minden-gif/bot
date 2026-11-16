@@ -1,0 +1,16 @@
+{
+  "update_type": "message_created",
+  "timestamp": 1763280000000,
+  "message": {
+    "sender": {
+      "user_id": 123456789,
+      "first_name": "Иван",
+      "last_name": "Петров",
+      "is_bot": false
+    },
+    "recipient": {"user_id": 987654321, "chat_type": "dialogue"},
+    "body": {"mid": "test-mid-1", "seq": 1, "text": "Начать заявку", "attachments": null},
+    "timestamp": 1763280000000
+  },
+  "user_locale": "ru-RU"
+}
