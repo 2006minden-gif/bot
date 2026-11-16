@@ -97,16 +97,23 @@ async def _flush_loop():
             log.exception("flush loop error: %s", e)
 
 
+async def startup_tasks(app: FastAPI):
+    """Инициализация бота. Используется и lifespan (uvicorn), и wsgi-мостом."""
+    global tg_bot, _flush_task
+    if not hasattr(app.state, "dp"):
+        if config.TELEGRAM_BOT_TOKEN:
+            tg_bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
+            dp = Dispatcher()
+            dp.include_router(router)
+            app.state.dp = dp
+        if _flush_task is None:
+            _flush_task = asyncio.create_task(_flush_loop())
+        log.info("Bot app started")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global tg_bot, _flush_task
-    if config.TELEGRAM_BOT_TOKEN:
-        tg_bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
-        dp = Dispatcher()
-        dp.include_router(router)
-        app.state.dp = dp
-    _flush_task = asyncio.create_task(_flush_loop())
-    log.info("Bot app started")
+    await startup_tasks(app)
     yield
     _flush_task.cancel()
     if tg_bot:

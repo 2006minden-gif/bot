@@ -169,7 +169,10 @@ def parse_update(body: dict):
         sender.get("user_id")
     if chat_id is None:
         return None
-    text = (msg.get("body") or msg.get("text") or "").strip()
+    text = msg.get("body") or msg.get("text") or ""
+    if isinstance(text, dict):  # в реальных webhook body — объект с полем text
+        text = text.get("text") or ""
+    text = str(text).strip()
     name = " ".join(p for p in (sender.get("first_name"),
                                 sender.get("last_name")) if p)
     return {
